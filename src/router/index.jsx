@@ -4,14 +4,14 @@ import Layout from "@/components/organisms/Layout";
 
 const BoardsPage = lazy(() => import("@/components/pages/BoardsPage"));
 const BoardDetailPage = lazy(() => import("@/components/pages/BoardDetailPage"));
-const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage"));
 const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage"));
+const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage"));
 const ChangelogPage = lazy(() => import("@/components/pages/ChangelogPage"));
-const ChangelogDetailPage = lazy(() => import("@/components/pages/ChangelogDetailPage"));
-const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage"));
 const AdminWidgetConfigPage = lazy(() => import("@/components/pages/AdminWidgetConfigPage"));
+const AdminWidgetAnalyticsPage = lazy(() => import("@/components/pages/AdminWidgetAnalyticsPage"));
 const AdminChangelogsPage = lazy(() => import("@/components/pages/AdminChangelogsPage"));
 const NotFound = lazy(() => import("@/components/pages/NotFound"));
+
 const mainRoutes = [
   {
     path: "",
@@ -34,13 +34,21 @@ const mainRoutes = [
     path: "changelog",
     element: <Suspense fallback={<div>Loading.....</div>}><ChangelogPage /></Suspense>
   },
-  {
-    path: "changelog/:version",
-    element: <Suspense fallback={<div>Loading.....</div>}><ChangelogDetailPage /></Suspense>
+{
+    path: "admin/widget-config",
+    element: (
+      <Suspense fallback={<div>Loading.....</div>}>
+        <AdminWidgetConfigPage />
+      </Suspense>
+    )
   },
   {
-    path: "admin/boards",
-    element: <Suspense fallback={<div>Loading.....</div>}><AdminBoardsPage /></Suspense>
+    path: "admin/widget-analytics",
+    element: (
+      <Suspense fallback={<div>Loading.....</div>}>
+        <AdminWidgetAnalyticsPage />
+      </Suspense>
+    )
   },
   {
     path: "admin/changelogs",

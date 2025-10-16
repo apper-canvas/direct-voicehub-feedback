@@ -48,7 +48,7 @@ export const widgetService = {
     return { ...widgetConfigs[index] };
   },
 
-  async delete(id) {
+async delete(id) {
     await delay(300);
     const index = widgetConfigs.findIndex(w => w.Id === parseInt(id));
     if (index === -1) {
@@ -57,6 +57,52 @@ export const widgetService = {
     
     const deletedConfig = widgetConfigs.splice(index, 1)[0];
     return { ...deletedConfig };
+  },
+
+  async getAnalytics(timePeriod = "30d") {
+    await delay(300);
+    
+    // Generate realistic analytics data based on time period
+    const daysMap = { "7d": 7, "30d": 30, "90d": 90, "all": 365 };
+    const days = daysMap[timePeriod] || 30;
+    
+    const installations = Math.floor(Math.random() * 500) + 100;
+    const submissions = Math.floor(installations * (Math.random() * 0.15 + 0.05)); // 5-20% conversion
+    const conversionRate = ((submissions / installations) * 100).toFixed(2);
+    
+    // Generate time series data for charts
+    const installationTrend = [];
+    const submissionTrend = [];
+    const dates = [];
+    
+    for (let i = days; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
+      
+      installationTrend.push(Math.floor(Math.random() * 20) + 5);
+      submissionTrend.push(Math.floor(Math.random() * 5) + 1);
+    }
+    
+    return {
+      summary: {
+        totalInstallations: installations,
+        totalSubmissions: submissions,
+        conversionRate: parseFloat(conversionRate)
+      },
+      trends: {
+        dates,
+        installations: installationTrend,
+        submissions: submissionTrend
+      },
+      byWidget: widgetConfigs.map(config => ({
+        id: config.Id,
+        name: config.buttonText,
+        installations: Math.floor(Math.random() * 200) + 50,
+        submissions: Math.floor(Math.random() * 30) + 5,
+        conversionRate: (Math.random() * 15 + 5).toFixed(2)
+      }))
+    };
   },
 
   async generateEmbedCode(config, framework = "html") {

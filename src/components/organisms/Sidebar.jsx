@@ -73,18 +73,13 @@ const navigationItems = [
           </div>
         </div>
       );
-    }
+}
 
-return (
+    return (
       <NavLink
         to={item.href}
         onClick={onClick}
-        className={({ isActive }) =>
-          cn(
-            "relative block transition-all duration-200",
-            isActive && "text-white"
-          )
-        }
+        className="relative block"
       >
         {({ isActive }) => (
           <>
