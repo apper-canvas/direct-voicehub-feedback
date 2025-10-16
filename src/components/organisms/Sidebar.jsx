@@ -75,16 +75,14 @@ const navigationItems = [
       );
     }
 
-    return (
+return (
       <NavLink
         to={item.href}
         onClick={onClick}
         className={({ isActive }) =>
           cn(
-            "relative block px-3 py-2 transition-all duration-200",
-            isActive
-              ? "text-white"
-              : "text-gray-700 hover:text-gray-900"
+            "relative block transition-all duration-200",
+            isActive && "text-white"
           )
         }
       >

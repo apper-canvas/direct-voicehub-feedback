@@ -2,16 +2,16 @@ import { createBrowserRouter } from "react-router-dom";
 import React, { Suspense, lazy } from "react";
 import Layout from "@/components/organisms/Layout";
 
-// Lazy load pages
-const BoardsPage = lazy(() => import("@/components/pages/BoardsPage.jsx"));
-const BoardDetailPage = lazy(() => import("@/components/pages/BoardDetailPage.jsx"));
-const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage.jsx"));
-const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage.jsx"));
-const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage.jsx"));
-const ChangelogPage = lazy(() => import("@/components/pages/ChangelogPage.jsx"));
-const ChangelogDetailPage = lazy(() => import("@/components/pages/ChangelogDetailPage.jsx"));
-const AdminChangelogsPage = lazy(() => import("@/components/pages/AdminChangelogsPage.jsx"));
-const NotFound = lazy(() => import("@/components/pages/NotFound.jsx"));
+const BoardsPage = lazy(() => import("@/components/pages/BoardsPage"));
+const BoardDetailPage = lazy(() => import("@/components/pages/BoardDetailPage"));
+const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage"));
+const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage"));
+const ChangelogPage = lazy(() => import("@/components/pages/ChangelogPage"));
+const ChangelogDetailPage = lazy(() => import("@/components/pages/ChangelogDetailPage"));
+const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage"));
+const AdminWidgetConfigPage = lazy(() => import("@/components/pages/AdminWidgetConfigPage"));
+const AdminChangelogsPage = lazy(() => import("@/components/pages/AdminChangelogsPage"));
+const NotFound = lazy(() => import("@/components/pages/NotFound"));
 const mainRoutes = [
   {
     path: "",
@@ -26,16 +26,12 @@ const mainRoutes = [
     path: "boards/:boardId",
     element: <Suspense fallback={<div>Loading.....</div>}><BoardDetailPage /></Suspense>
   },
-  {
+{
     path: "posts/:postId",
     element: <Suspense fallback={<div>Loading.....</div>}><PostDetailPage /></Suspense>
   },
-{
-    path: "admin/boards",
-    element: <Suspense fallback={<div>Loading.....</div>}><AdminBoardsPage /></Suspense>
-  },
   {
-path: "changelog",
+    path: "changelog",
     element: <Suspense fallback={<div>Loading.....</div>}><ChangelogPage /></Suspense>
   },
   {
@@ -43,8 +39,24 @@ path: "changelog",
     element: <Suspense fallback={<div>Loading.....</div>}><ChangelogDetailPage /></Suspense>
   },
   {
+    path: "admin/boards",
+    element: <Suspense fallback={<div>Loading.....</div>}><AdminBoardsPage /></Suspense>
+  },
+  {
     path: "admin/changelogs",
-    element: <Suspense fallback={<div>Loading.....</div>}><AdminChangelogsPage /></Suspense>
+    element: (
+      <Suspense fallback={<div>Loading.....</div>}>
+        <AdminChangelogsPage />
+      </Suspense>
+    )
+  },
+  {
+    path: "admin/widgets",
+    element: (
+      <Suspense fallback={<div>Loading.....</div>}>
+        <AdminWidgetConfigPage />
+      </Suspense>
+    )
   },
   {
     path: "*",
