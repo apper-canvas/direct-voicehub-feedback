@@ -7,6 +7,7 @@ const BoardsPage = lazy(() => import("@/components/pages/BoardsPage.jsx"));
 const BoardDetailPage = lazy(() => import("@/components/pages/BoardDetailPage.jsx"));
 const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage.jsx"));
 const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage.jsx"));
+const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage.jsx"));
 const NotFound = lazy(() => import("@/components/pages/NotFound.jsx"));
 
 const mainRoutes = [
@@ -14,6 +15,10 @@ const mainRoutes = [
     path: "",
     index: true,
     element: <Suspense fallback={<div>Loading.....</div>}><BoardsPage /></Suspense>
+  },
+  {
+    path: "roadmap",
+    element: <Suspense fallback={<div>Loading.....</div>}><RoadmapPage /></Suspense>
   },
   {
     path: "boards/:boardId",

@@ -32,19 +32,21 @@ const handleSubmitFeedback = () => {
     }
   };
 
-  const getPageTitle = () => {
+const getPageTitle = () => {
     if (isOnBoardsPage) return "Feedback Boards";
     if (isOnBoardDetailPage) return "Board Details";
     if (isOnPostDetailPage) return "Post Details";
     if (location.pathname === "/admin/boards") return "Manage Boards";
+    if (location.pathname === "/roadmap") return "Product Roadmap";
     return "VoiceHub";
   };
 
-  const getPageDescription = () => {
+const getPageDescription = () => {
     if (isOnBoardsPage) return "Browse all feedback boards and discover what others are saying";
     if (isOnBoardDetailPage) return "View and vote on feedback posts";
     if (isOnPostDetailPage) return "Full post details and discussion";
     if (location.pathname === "/admin/boards") return "Create and manage your feedback boards";
+    if (location.pathname === "/roadmap") return "Visualize and manage your product development timeline";
     return "Feedback management platform";
   };
 

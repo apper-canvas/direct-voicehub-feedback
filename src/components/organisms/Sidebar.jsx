@@ -7,7 +7,7 @@ const Sidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  const navigationItems = [
+const navigationItems = [
     {
       name: "Feedback Boards",
       href: "/",
@@ -18,9 +18,7 @@ const Sidebar = () => {
       name: "Roadmap",
       href: "/roadmap",
       icon: "Map",
-      description: "Product development timeline",
-      badge: "Coming Soon",
-      disabled: true
+      description: "Product development timeline"
     },
     {
       name: "Changelog",
