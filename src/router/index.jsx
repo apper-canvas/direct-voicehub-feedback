@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import Layout from "@/components/organisms/Layout.jsx";
+import React, { Suspense, lazy } from "react";
+import Layout from "@/components/organisms/Layout";
 
 // Lazy load pages
 const BoardsPage = lazy(() => import("@/components/pages/BoardsPage.jsx"));
@@ -8,8 +8,9 @@ const BoardDetailPage = lazy(() => import("@/components/pages/BoardDetailPage.js
 const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage.jsx"));
 const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage.jsx"));
 const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage.jsx"));
+const ChangelogPage = lazy(() => import("@/components/pages/ChangelogPage.jsx"));
+const AdminChangelogsPage = lazy(() => import("@/components/pages/AdminChangelogsPage.jsx"));
 const NotFound = lazy(() => import("@/components/pages/NotFound.jsx"));
-
 const mainRoutes = [
   {
     path: "",
@@ -28,9 +29,17 @@ const mainRoutes = [
     path: "posts/:postId",
     element: <Suspense fallback={<div>Loading.....</div>}><PostDetailPage /></Suspense>
   },
-  {
+{
     path: "admin/boards",
     element: <Suspense fallback={<div>Loading.....</div>}><AdminBoardsPage /></Suspense>
+  },
+  {
+    path: "changelog",
+    element: <Suspense fallback={<div>Loading.....</div>}><ChangelogPage /></Suspense>
+  },
+  {
+    path: "admin/changelogs",
+    element: <Suspense fallback={<div>Loading.....</div>}><AdminChangelogsPage /></Suspense>
   },
   {
     path: "*",

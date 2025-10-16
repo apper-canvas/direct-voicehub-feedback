@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/utils/cn";
 import ApperIcon from "@/components/ApperIcon";
@@ -19,14 +19,12 @@ const navigationItems = [
       href: "/roadmap",
       icon: "Map",
       description: "Product development timeline"
-    },
+},
     {
       name: "Changelog",
       href: "/changelog", 
       icon: "FileText",
-      description: "Latest updates and releases",
-      badge: "Coming Soon",
-      disabled: true
+      description: "Latest updates and releases"
     },
     {
       name: "Search",
