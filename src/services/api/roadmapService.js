@@ -11,11 +11,10 @@ let nextId = Math.max(...roadmapItems.map(item => item.Id)) + 1;
 
 // Status options
 export const STATUS_OPTIONS = [
+  'Backlog',
   'Planned',
-  'In Progress', 
-  'Completed',
-  'On Hold',
-  'Research'
+  'In Progress',
+  'Shipped'
 ];
 
 // Priority options
@@ -154,10 +153,16 @@ const updateStatus = async (id, status) => {
   roadmapItems[index].updatedAt = new Date().toISOString();
   
   // Auto-update progress based on status
-  if (status === 'Completed') {
+  if (status === 'Shipped') {
     roadmapItems[index].progress = 100;
-  } else if (status === 'Planned') {
+  } else if (status === 'Backlog') {
     roadmapItems[index].progress = 0;
+  } else if (status === 'Planned') {
+    roadmapItems[index].progress = 25;
+  } else if (status === 'In Progress') {
+    if (roadmapItems[index].progress < 25) {
+      roadmapItems[index].progress = 50;
+    }
   }
   
   return { ...roadmapItems[index] };
@@ -177,9 +182,13 @@ const updateProgress = async (id, progress) => {
   
   // Auto-update status based on progress
   if (roadmapItems[index].progress === 100) {
-    roadmapItems[index].status = 'Completed';
-  } else if (roadmapItems[index].progress > 0) {
+    roadmapItems[index].status = 'Shipped';
+  } else if (roadmapItems[index].progress > 50) {
     roadmapItems[index].status = 'In Progress';
+  } else if (roadmapItems[index].progress > 0) {
+    if (roadmapItems[index].status === 'Backlog') {
+      roadmapItems[index].status = 'Planned';
+    }
   }
   
   return { ...roadmapItems[index] };

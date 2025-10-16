@@ -8,15 +8,17 @@ import Button from '@/components/atoms/Button';
 import Select from '@/components/atoms/Select';
 import SearchBar from '@/components/molecules/SearchBar';
 import RoadmapCard from '@/components/molecules/RoadmapCard';
+import KanbanBoard from '@/components/molecules/KanbanBoard';
 import RoadmapItemModal from '@/components/organisms/RoadmapItemModal';
 import ApperIcon from '@/components/ApperIcon';
 import { roadmapService } from '@/services/api/roadmapService';
 
 const RoadmapPage = () => {
-  const [roadmapItems, setRoadmapItems] = useState([]);
+const [roadmapItems, setRoadmapItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState('kanban'); // 'timeline' or 'kanban'
   
   const [filters, setFilters] = useState({
     status: 'all',
@@ -27,7 +29,6 @@ const RoadmapPage = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-
   // Timeline configuration
   const timelineStart = new Date('2024-10-01');
   const timelineEnd = new Date('2025-06-30');
@@ -106,7 +107,7 @@ const RoadmapPage = () => {
     setSelectedItem(null);
   };
 
-  const handleSubmitItem = async (itemData) => {
+const handleSubmitItem = async (itemData) => {
     try {
       if (selectedItem) {
         await roadmapService.update(selectedItem.Id, itemData);
@@ -119,6 +120,28 @@ const RoadmapPage = () => {
       handleCloseModal();
     } catch (error) {
       throw error;
+    }
+  };
+
+  const handleStatusChange = async (itemId, newStatus) => {
+    try {
+      await roadmapService.updateStatus(itemId, newStatus);
+      await loadRoadmapItems();
+      toast.success(`Item moved to ${newStatus}`);
+    } catch (error) {
+      toast.error(error.message || 'Failed to update status');
+    }
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    
+    try {
+      await roadmapService.delete(itemId);
+      await loadRoadmapItems();
+      toast.success('Item deleted successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete item');
     }
   };
 
@@ -151,7 +174,7 @@ const RoadmapPage = () => {
   const groupedItems = groupItemsByStatus(filteredItems);
 
   return (
-    <div className="space-y-6">
+<div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-card p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -161,14 +184,44 @@ const RoadmapPage = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Product Roadmap</h1>
-              <p className="text-gray-600 text-sm">Timeline view of product development</p>
+              <p className="text-gray-600 text-sm">
+                {viewMode === 'kanban' ? 'Kanban board view' : 'Timeline view of product development'}
+              </p>
             </div>
           </div>
 
-          <Button onClick={handleOpenCreateModal} className="btn-press">
-            <ApperIcon name="Plus" size={18} />
-            Add Item
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'kanban'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ApperIcon name="Columns3" size={16} />
+                Kanban
+              </button>
+              <button
+                onClick={() => setViewMode('timeline')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'timeline'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ApperIcon name="Calendar" size={16} />
+                Timeline
+              </button>
+            </div>
+
+            <Button onClick={handleOpenCreateModal} className="btn-press">
+              <ApperIcon name="Plus" size={18} />
+              Add Item
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -212,41 +265,46 @@ const RoadmapPage = () => {
           />
         </div>
 
-        {/* Legend */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <span className="font-medium text-gray-700">Status:</span>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-500" />
-              <span className="text-gray-600">Planned</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-gray-600">In Progress</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="text-gray-600">Completed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <span className="text-gray-600">On Hold</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-purple-500" />
-              <span className="text-gray-600">Research</span>
+        {/* Legend - Only show for Timeline view */}
+        {viewMode === 'timeline' && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <span className="font-medium text-gray-700">Status:</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gray-400" />
+                <span className="text-gray-600">Backlog</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                <span className="text-gray-600">Planned</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-gray-600">In Progress</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="text-gray-600">Shipped</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Timeline View */}
+{/* View Content */}
       {filteredItems.length === 0 ? (
         <Empty
           title="No roadmap items found"
           message="Start building your product roadmap by adding your first item."
           actionLabel="Add First Item"
           onAction={handleOpenCreateModal}
+        />
+      ) : viewMode === 'kanban' ? (
+        <KanbanBoard
+          items={filteredItems}
+          onStatusChange={handleStatusChange}
+          onEditItem={handleOpenEditModal}
+          onDeleteItem={handleDeleteItem}
         />
       ) : (
         <div className="bg-white rounded-2xl shadow-card p-6">

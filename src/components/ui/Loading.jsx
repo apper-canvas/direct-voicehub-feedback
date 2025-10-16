@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 
-const Loading = ({ className, type = "cards", count = 6 }) => {
+const Loading = ({ className, type = "cards", count = 6, columns = 4 }) => {
   if (type === "board-detail") {
     return (
       <div className={cn("space-y-6", className)}>
@@ -102,6 +102,44 @@ if (type === "post-detail") {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+if (type === "kanban") {
+    return (
+      <div className={cn("grid gap-6", `grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns}`, className)}>
+        {Array.from({ length: columns }).map((_, colIndex) => (
+          <div key={colIndex} className="bg-white rounded-xl border-2 border-gray-200">
+            {/* Column Header Skeleton */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-gray-200 rounded shimmer"></div>
+                  <div className="h-5 bg-gray-200 rounded w-24 shimmer"></div>
+                </div>
+                <div className="w-8 h-6 bg-gray-200 rounded shimmer"></div>
+              </div>
+            </div>
+            {/* Column Cards Skeleton */}
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 3 }).map((_, cardIndex) => (
+                <div key={cardIndex} className="bg-white rounded-lg border-2 border-gray-200 p-4 shimmer">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-gray-200 rounded"></div>
+                    <div className="h-5 bg-gray-200 rounded w-16"></div>
+                  </div>
+                  <div className="h-5 bg-gray-200 rounded w-full mb-3"></div>
+                  <div className="h-2 bg-gray-200 rounded w-full mb-4"></div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
