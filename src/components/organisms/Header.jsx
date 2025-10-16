@@ -1,16 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { cn } from "@/utils/cn";
-import ApperIcon from "@/components/ApperIcon";
+import { toast } from "react-toastify";
 import Button from "@/components/atoms/Button";
+import SearchBar from "@/components/molecules/SearchBar";
+import ApperIcon from "@/components/ApperIcon";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isOnBoardsPage = location.pathname === "/boards";
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isOnBoardsPage = location.pathname === "/";
   const isOnBoardDetailPage = location.pathname.startsWith("/boards/");
   const isOnPostDetailPage = location.pathname.startsWith("/posts/");
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      toast.info(`Search functionality coming soon for: "${query}"`);
+    }
+  };
+
 const handleSubmitFeedback = () => {
     if (isOnBoardDetailPage) {
       // Trigger board's submit feedback modal
@@ -58,7 +69,17 @@ const getPageDescription = () => {
           {/* Right Section - Search & Actions */}
           <div className="flex items-center gap-4 ml-4">
             {/* Search Bar - Hidden on mobile */}
-{/* Submit Feedback Button - Only on boards pages */}
+            <div className="hidden md:block">
+              <SearchBar
+                placeholder="Search feedback..."
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={handleSearch}
+                className="w-80"
+              />
+            </div>
+
+            {/* Submit Feedback Button */}
             {(isOnBoardsPage || isOnBoardDetailPage) && (
               <Button
                 onClick={handleSubmitFeedback}
@@ -90,6 +111,15 @@ const getPageDescription = () => {
             )}
 
             {/* Mobile Search Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => toast.info("Search functionality coming soon")}
+              >
+                <ApperIcon name="Search" className="w-5 h-5" />
+              </Button>
+            </div>
 
             {/* Notifications */}
             <div className="relative">
