@@ -1,9 +1,11 @@
 import postsData from "@/services/mockData/posts.json";
 import votesData from "@/services/mockData/votes.json";
+import commentsData from "@/services/mockData/comments.json";
 import { boardService } from "@/services/api/boardService";
 
 let posts = [...postsData];
 let votes = [...votesData];
+let comments = [...commentsData];
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -23,7 +25,15 @@ export const postService = {
     // Increment view count
     post.viewCount = (post.viewCount || 0) + 1;
     
-    return { ...post };
+    // Get accurate comment count
+    const commentCount = comments.filter(c => c.postId === parseInt(id)).length;
+    
+    return { ...post, commentCount };
+  },
+  
+  async getCommentCount(postId) {
+    await delay(100);
+    return comments.filter(c => c.postId === parseInt(postId)).length;
   },
 
   async getByBoardId(boardId) {
@@ -178,6 +188,22 @@ export const postService = {
         return sorted.sort((a, b) => (b.commentCount || 0) - (a.commentCount || 0));
       default:
         return sorted;
+    }
+},
+  
+  async incrementCommentCount(postId) {
+    await delay(100);
+    const post = posts.find(p => p.Id === parseInt(postId));
+    if (post) {
+      post.commentCount = (post.commentCount || 0) + 1;
+    }
+  },
+  
+  async decrementCommentCount(postId) {
+    await delay(100);
+    const post = posts.find(p => p.Id === parseInt(postId));
+    if (post && post.commentCount > 0) {
+      post.commentCount = post.commentCount - 1;
     }
   }
 };
