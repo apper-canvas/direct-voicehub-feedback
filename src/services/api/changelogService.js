@@ -78,6 +78,18 @@ const getAll = async (filters = {}) => {
   return filtered;
 };
 
+// Get latest published changelogs (for widget display)
+const getLatestPublished = async (limit = 5) => {
+  await delay(200);
+  
+  const published = changelogs
+    .filter(item => item.status === 'published')
+    .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+    .slice(0, limit);
+  
+  return published;
+};
+
 // Get single changelog by ID
 const getById = async (id) => {
   await delay(200);
@@ -264,6 +276,7 @@ const getStats = async () => {
 
 export const changelogService = {
   getAll,
+  getLatestPublished,
   getById,
   getNextVersion,
   create,
