@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Chart from "react-apexcharts";
+import { widgetService } from "@/services/api/widgetService";
 import { cn } from "@/utils/cn";
 import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import { widgetService } from "@/services/api/widgetService";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-
+import Button from "@/components/atoms/Button";
 export default function AdminWidgetAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,7 +39,7 @@ export default function AdminWidgetAnalyticsPage() {
   ];
 
   // Chart configurations
-  const installationChartOptions = {
+const installationChartOptions = {
     chart: {
       type: "area",
       height: 300,
@@ -108,6 +107,101 @@ export default function AdminWidgetAnalyticsPage() {
     }
   };
 
+  const geographyChartOptions = {
+    chart: {
+      type: "donut",
+      height: 320
+    },
+    labels: analyticsData?.geography.map(g => g.country) || [],
+    colors: ["#6366F1", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#6B7280"],
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "65%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Total Users",
+              fontSize: "16px",
+              fontWeight: 600,
+              color: "#374151"
+            }
+          }
+        }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function(val) {
+        return val.toFixed(1) + "%";
+      }
+    },
+    legend: {
+      position: "bottom",
+      fontSize: "14px",
+      fontWeight: 500,
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 3
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: function(val) {
+          return val + " users";
+        }
+      }
+    }
+  };
+
+  const deviceChartOptions = {
+    chart: {
+      type: "radialBar",
+      height: 320
+    },
+    plotOptions: {
+      radialBar: {
+        offsetY: 0,
+        startAngle: 0,
+        endAngle: 270,
+        hollow: {
+          margin: 5,
+          size: "30%",
+          background: "transparent"
+        },
+        dataLabels: {
+          name: {
+            fontSize: "16px",
+            fontWeight: 600,
+            offsetY: -10
+          },
+          value: {
+            fontSize: "14px",
+            offsetY: 5,
+            formatter: function(val) {
+              return val + "%";
+            }
+          }
+        }
+      }
+    },
+    colors: ["#6366F1", "#10B981", "#F59E0B"],
+    labels: ["Desktop", "Mobile", "Tablet"],
+    legend: {
+      show: true,
+      position: "bottom",
+      fontSize: "14px",
+      fontWeight: 500,
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 3
+      }
+    }
+  };
+
   const getConversionRateColor = (rate) => {
     if (rate >= 10) return "text-green-600 bg-green-50";
     if (rate >= 5) return "text-yellow-600 bg-yellow-50";
@@ -152,7 +246,7 @@ export default function AdminWidgetAnalyticsPage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+<div className="max-w-7xl mx-auto px-8 py-8 space-y-6">
           {/* Key Metrics */}
           <div className="grid md:grid-cols-3 gap-6">
             {/* Total Installations */}
@@ -238,6 +332,62 @@ export default function AdminWidgetAnalyticsPage() {
               }]}
               type="bar"
               height={300}
+            />
+          </div>
+{/* Popular Pages */}
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center gap-2 mb-6">
+              <ApperIcon name="BarChart3" size={20} className="text-indigo-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Popular Pages</h3>
+            </div>
+            <div className="space-y-3">
+              {analyticsData.popularPages.map((page, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-900">{page.url}</span>
+                    <span className="text-gray-600">{page.views.toLocaleString()} views</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${page.percentage}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 text-right">{page.percentage}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Geographic Distribution */}
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center gap-2 mb-6">
+              <ApperIcon name="Globe" size={20} className="text-indigo-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Geographic Distribution</h3>
+            </div>
+            <Chart
+              options={geographyChartOptions}
+              series={analyticsData.geography.map(g => g.users)}
+              type="donut"
+              height={320}
+            />
+          </div>
+
+          {/* Device Breakdown */}
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center gap-2 mb-6">
+              <ApperIcon name="Smartphone" size={20} className="text-indigo-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Device Breakdown</h3>
+            </div>
+            <Chart
+              options={deviceChartOptions}
+              series={[
+                analyticsData.devices.desktop,
+                analyticsData.devices.mobile,
+                analyticsData.devices.tablet
+              ]}
+              type="radialBar"
+              height={320}
             />
           </div>
 

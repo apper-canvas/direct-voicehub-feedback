@@ -59,7 +59,7 @@ async delete(id) {
     return { ...deletedConfig };
   },
 
-  async getAnalytics(timePeriod = "30d") {
+async getAnalytics(timePeriod = "30d") {
     await delay(300);
     
     // Generate realistic analytics data based on time period
@@ -84,6 +84,54 @@ async delete(id) {
       submissionTrend.push(Math.floor(Math.random() * 5) + 1);
     }
     
+    // Generate popular pages data
+    const pages = [
+      { url: "/pricing", views: Math.floor(Math.random() * 1000) + 500 },
+      { url: "/features", views: Math.floor(Math.random() * 800) + 400 },
+      { url: "/", views: Math.floor(Math.random() * 1500) + 800 },
+      { url: "/contact", views: Math.floor(Math.random() * 600) + 300 },
+      { url: "/about", views: Math.floor(Math.random() * 500) + 200 }
+    ];
+    
+    const totalViews = pages.reduce((sum, page) => sum + page.views, 0);
+    const popularPages = pages
+      .sort((a, b) => b.views - a.views)
+      .map(page => ({
+        url: page.url,
+        views: page.views,
+        percentage: ((page.views / totalViews) * 100).toFixed(1)
+      }));
+    
+    // Generate geographic distribution data
+    const countries = [
+      { country: "United States", users: Math.floor(Math.random() * 500) + 300 },
+      { country: "United Kingdom", users: Math.floor(Math.random() * 300) + 150 },
+      { country: "Canada", users: Math.floor(Math.random() * 200) + 100 },
+      { country: "Germany", users: Math.floor(Math.random() * 250) + 120 },
+      { country: "Australia", users: Math.floor(Math.random() * 180) + 80 },
+      { country: "France", users: Math.floor(Math.random() * 150) + 70 },
+      { country: "India", users: Math.floor(Math.random() * 400) + 200 },
+      { country: "Other", users: Math.floor(Math.random() * 300) + 150 }
+    ];
+    
+    const totalUsers = countries.reduce((sum, c) => sum + c.users, 0);
+    const geography = countries.map(c => ({
+      country: c.country,
+      users: c.users,
+      percentage: ((c.users / totalUsers) * 100).toFixed(1)
+    }));
+    
+    // Generate device breakdown data
+    const desktopPercentage = Math.floor(Math.random() * 20) + 50; // 50-70%
+    const mobilePercentage = Math.floor(Math.random() * 15) + 25; // 25-40%
+    const tabletPercentage = 100 - desktopPercentage - mobilePercentage;
+    
+    const devices = {
+      desktop: desktopPercentage,
+      mobile: mobilePercentage,
+      tablet: tabletPercentage
+    };
+    
     return {
       summary: {
         totalInstallations: installations,
@@ -101,7 +149,10 @@ async delete(id) {
         installations: Math.floor(Math.random() * 200) + 50,
         submissions: Math.floor(Math.random() * 30) + 5,
         conversionRate: (Math.random() * 15 + 5).toFixed(2)
-      }))
+      })),
+      popularPages,
+      geography,
+      devices
     };
   },
 
