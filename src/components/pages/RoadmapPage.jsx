@@ -5,6 +5,7 @@ import Loading from '@/components/ui/Loading';
 import Error from '@/components/ui/Error';
 import Empty from '@/components/ui/Empty';
 import Button from '@/components/atoms/Button';
+import Badge from '@/components/atoms/Badge';
 import Select from '@/components/atoms/Select';
 import SearchBar from '@/components/molecules/SearchBar';
 import RoadmapCard from '@/components/molecules/RoadmapCard';
@@ -12,13 +13,16 @@ import KanbanBoard from '@/components/molecules/KanbanBoard';
 import RoadmapItemModal from '@/components/organisms/RoadmapItemModal';
 import ApperIcon from '@/components/ApperIcon';
 import { roadmapService } from '@/services/api/roadmapService';
+import votesData from '@/services/mockData/votes.json';
 
 const RoadmapPage = () => {
 const [roadmapItems, setRoadmapItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('kanban'); // 'timeline' or 'kanban'
+const [viewMode, setViewMode] = useState('kanban'); // 'timeline', 'kanban', or 'list'
+  const [sortField, setSortField] = useState('title');
+  const [sortDirection, setSortDirection] = useState('asc');
   
   const [filters, setFilters] = useState({
     status: 'all',
@@ -39,9 +43,50 @@ const [roadmapItems, setRoadmapItems] = useState([]);
     loadRoadmapItems();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     applyFilters();
-  }, [roadmapItems, filters]);
+  }, [roadmapItems, filters, sortField, sortDirection]);
+
+  const sortItems = (items) => {
+    const sorted = [...items].sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      // Handle special cases
+      if (sortField === 'dueDate') {
+        aVal = new Date(aVal);
+        bVal = new Date(bVal);
+      } else if (sortField === 'progress') {
+        aVal = parseFloat(aVal) || 0;
+        bVal = parseFloat(bVal) || 0;
+      } else if (sortField === 'votes') {
+        aVal = calculateVotes(a.Id);
+        bVal = calculateVotes(b.Id);
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const calculateVotes = (itemId) => {
+    return votesData.filter(vote => vote.postId === itemId).length;
+  };
 
   const loadRoadmapItems = async () => {
     try {
@@ -57,7 +102,7 @@ const [roadmapItems, setRoadmapItems] = useState([]);
     }
   };
 
-  const applyFilters = () => {
+const applyFilters = () => {
     let filtered = [...roadmapItems];
 
     if (filters.status !== 'all') {
@@ -81,7 +126,8 @@ const [roadmapItems, setRoadmapItems] = useState([]);
       );
     }
 
-    setFilteredItems(filtered);
+    const sorted = sortItems(filtered);
+    setFilteredItems(sorted);
   };
 
   const handleFilterChange = (filterName, value) => {
@@ -171,7 +217,45 @@ const handleSubmitItem = async (itemData) => {
     return <Error message={error} onRetry={loadRoadmapItems} />;
   }
 
-  const groupedItems = groupItemsByStatus(filteredItems);
+const groupedItems = groupItemsByStatus(filteredItems);
+
+  const getPriorityIcon = (priority) => {
+    const icons = {
+      critical: '🔴',
+      high: '🟠',
+      medium: '🟡',
+      low: '🟢'
+    };
+    return icons[priority] || '⚪';
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Planned': 'bg-gray-500',
+      'In Progress': 'bg-blue-500',
+      'Completed': 'bg-green-500',
+      'On Hold': 'bg-yellow-500',
+      'Research': 'bg-purple-500'
+    };
+    return colors[status] || 'bg-gray-500';
+  };
+
+  const getProgressColor = (progress) => {
+    const value = parseFloat(progress) || 0;
+    if (value >= 80) return 'bg-green-500';
+    if (value >= 50) return 'bg-blue-500';
+    if (value >= 25) return 'bg-yellow-500';
+    return 'bg-gray-400';
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) {
+      return <ApperIcon name="ChevronsUpDown" size={14} className="text-gray-400" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ApperIcon name="ChevronUp" size={14} className="text-primary-600" />
+      : <ApperIcon name="ChevronDown" size={14} className="text-primary-600" />;
+  };
 
   return (
 <div className="space-y-6">
@@ -185,12 +269,12 @@ const handleSubmitItem = async (itemData) => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Product Roadmap</h1>
               <p className="text-gray-600 text-sm">
-                {viewMode === 'kanban' ? 'Kanban board view' : 'Timeline view of product development'}
+{viewMode === 'kanban' ? 'Kanban board view' : viewMode === 'list' ? 'List view with sortable columns' : 'Timeline view of product development'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+<div className="flex items-center gap-3">
             {/* View Toggle */}
             <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
               <button
@@ -203,6 +287,17 @@ const handleSubmitItem = async (itemData) => {
               >
                 <ApperIcon name="Columns3" size={16} />
                 Kanban
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ApperIcon name="Table2" size={16} />
+                List
               </button>
               <button
                 onClick={() => setViewMode('timeline')}
@@ -292,15 +387,167 @@ const handleSubmitItem = async (itemData) => {
       </div>
 
 {/* View Content */}
-      {filteredItems.length === 0 ? (
+{filteredItems.length === 0 ? (
         <Empty
           title="No roadmap items found"
           message="Start building your product roadmap by adding your first item."
           actionLabel="Add First Item"
           onAction={handleOpenCreateModal}
         />
+      ) : viewMode === 'list' ? (
+        <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('title')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Title
+                      <SortIcon field="title" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Status
+                      <SortIcon field="status" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('priority')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Priority
+                      <SortIcon field="priority" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('category')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Category
+                      <SortIcon field="category" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('dueDate')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Due Date
+                      <SortIcon field="dueDate" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('progress')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Progress
+                      <SortIcon field="progress" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('votes')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Votes
+                      <SortIcon field="votes" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredItems.map((item) => {
+                  const voteCount = calculateVotes(item.Id);
+                  const progressValue = parseFloat(item.progress) || 0;
+                  
+                  return (
+                    <tr key={item.Id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleOpenEditModal(item)}
+                          className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline text-left"
+                        >
+                          {item.title}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant="outline" className={`${getStatusColor(item.status)} text-white border-0`}>
+                          {item.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{getPriorityIcon(item.priority)}</span>
+                          <span className="text-sm text-gray-700 capitalize">{item.priority}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-700">{item.category}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-700">
+                          {format(new Date(item.dueDate), 'MMM dd, yyyy')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${getProgressColor(item.progress)}`}
+                              style={{ width: `${progressValue}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 w-12 text-right">
+                            {progressValue}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <ApperIcon name="ThumbsUp" size={16} className="text-gray-400" />
+                          <span className="text-sm font-medium text-gray-700">{voteCount}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenEditModal(item)}
+                            className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <ApperIcon name="Pencil" size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.Id)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <ApperIcon name="Trash2" size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : viewMode === 'kanban' ? (
-        <KanbanBoard
+<KanbanBoard
           items={filteredItems}
           onStatusChange={handleStatusChange}
           onEditItem={handleOpenEditModal}
@@ -374,8 +621,7 @@ const handleSubmitItem = async (itemData) => {
           </div>
         </div>
       )}
-
-      {/* Modal */}
+{/* Modal */}
       <RoadmapItemModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
