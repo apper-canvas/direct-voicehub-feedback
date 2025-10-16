@@ -100,6 +100,63 @@ const getById = async (id) => {
   return { ...changelog };
 };
 
+const getByVersion = async (version) => {
+  await delay(200);
+  // Convert URL-safe version format (v1-2-0) back to standard format (1.2.0)
+  const standardVersion = version.replace(/^v/, '').replace(/-/g, '.');
+  const changelog = changelogs.find(item => item.version === standardVersion);
+  if (!changelog) {
+    throw new Error('Changelog not found');
+  }
+  return { ...changelog };
+};
+
+const getAdjacentVersions = async (currentVersion) => {
+  await delay(200);
+  const sorted = [...changelogs]
+    .filter(c => c.status === 'published')
+    .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+  
+  const currentIndex = sorted.findIndex(c => c.version === currentVersion);
+  
+  return {
+    previous: currentIndex > 0 ? sorted[currentIndex - 1] : null,
+    next: currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null
+  };
+};
+
+const getRelatedChangelogs = async (changelogId, limit = 3) => {
+  await delay(200);
+  const current = changelogs.find(c => c.Id === changelogId);
+  if (!current) return [];
+  
+  const currentCategories = [...new Set(current.updates.map(u => u.category))];
+  
+  const related = changelogs
+    .filter(c => c.Id !== changelogId && c.status === 'published')
+    .map(c => {
+      const categories = [...new Set(c.updates.map(u => u.category))];
+      const matchingCategories = categories.filter(cat => currentCategories.includes(cat)).length;
+      const dateDiff = Math.abs(new Date(c.releaseDate) - new Date(current.releaseDate));
+      
+      return {
+        ...c,
+        score: matchingCategories * 1000 - dateDiff / (1000 * 60 * 60 * 24)
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+  
+  return related;
+};
+
+const submitHelpfulFeedback = async (changelogId, wasHelpful) => {
+  await delay(300);
+  // In a real app, this would save to backend
+  // For now, just simulate the operation
+  return { success: true, wasHelpful };
+};
+
 // Get next version suggestion
 const getNextVersion = async () => {
   await delay(100);
@@ -278,6 +335,10 @@ export const changelogService = {
   getAll,
   getLatestPublished,
   getById,
+  getByVersion,
+  getAdjacentVersions,
+  getRelatedChangelogs,
+  submitHelpfulFeedback,
   getNextVersion,
   create,
   update,

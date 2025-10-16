@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { cn } from '@/utils/cn';
 import ApperIcon from '@/components/ApperIcon';
@@ -9,8 +10,10 @@ const ChangelogCard = ({
   changelog, 
   className,
   onReact,
-  viewMode = 'card' // 'card', 'compact', or 'timeline'
+  viewMode = 'card', // 'card', 'compact', or 'timeline'
+  clickable = true
 }) => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
 
@@ -56,11 +59,24 @@ const ChangelogCard = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (clickable) {
+      navigate(`/changelog/v${changelog.version.replace(/\./g, '-')}`);
+    }
+  };
+
   const shouldTruncate = changelog.description.length > 200 && !expanded;
 
   if (viewMode === 'compact') {
     return (
-      <div className={cn('flex items-center gap-4 p-4 bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors', className)}>
+      <div 
+        className={cn(
+          'flex items-center gap-4 p-4 bg-white border-b border-gray-200 hover:bg-gray-50 transition-colors',
+          clickable && 'cursor-pointer',
+          className
+        )}
+        onClick={handleCardClick}
+      >
         <div className="flex-shrink-0">
           <div className="text-2xl font-bold text-primary-600">{changelog.version}</div>
           <div className="text-xs text-gray-500">{format(new Date(changelog.releaseDate), 'MMM d, yyyy')}</div>
@@ -91,7 +107,13 @@ const ChangelogCard = ({
         </div>
         <div className="flex-1 pb-8">
           <div className="text-sm text-gray-500 mb-2">{format(new Date(changelog.releaseDate), 'MMMM d, yyyy')}</div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div 
+            className={cn(
+              'bg-white rounded-lg border border-gray-200 p-4',
+              clickable && 'cursor-pointer hover:border-primary-300 transition-colors'
+            )}
+            onClick={handleCardClick}
+          >
             <h3 className="font-semibold text-gray-900 mb-2">{changelog.title}</h3>
             <p className="text-sm text-gray-600 mb-3">{changelog.description}</p>
             <div className="flex flex-wrap gap-2">
@@ -110,7 +132,14 @@ const ChangelogCard = ({
 
   // Default card view
   return (
-    <article className={cn('bg-white rounded-lg border border-gray-200 shadow-card hover:shadow-lg transition-all card-hover', className)}>
+    <article 
+      className={cn(
+        'bg-white rounded-lg border border-gray-200 shadow-card hover:shadow-lg transition-all card-hover',
+        clickable && 'cursor-pointer',
+        className
+      )}
+      onClick={handleCardClick}
+    >
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-start justify-between mb-3">
@@ -119,7 +148,10 @@ const ChangelogCard = ({
             <div className="text-sm text-gray-500">{format(new Date(changelog.releaseDate), 'MMMM d, yyyy')}</div>
           </div>
           <button
-            onClick={handleShare}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             title="Share"
           >
@@ -144,7 +176,10 @@ const ChangelogCard = ({
         </p>
         {changelog.description.length > 200 && (
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
             className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium inline-flex items-center gap-1"
           >
             {expanded ? (
@@ -185,10 +220,15 @@ const ChangelogCard = ({
         <div className="flex items-center justify-between">
           <ReactionButtons 
             reactions={changelog.reactions}
-            onReact={(type) => onReact(changelog.Id, type)}
+            onReact={(type) => {
+              if (onReact) onReact(changelog.Id, type);
+            }}
           />
           <button
-            onClick={() => setShowComments(!showComments)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowComments(!showComments);
+            }}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ApperIcon name="MessageSquare" size={16} />

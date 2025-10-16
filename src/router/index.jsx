@@ -9,6 +9,7 @@ const PostDetailPage = lazy(() => import("@/components/pages/PostDetailPage.jsx"
 const AdminBoardsPage = lazy(() => import("@/components/pages/AdminBoardsPage.jsx"));
 const RoadmapPage = lazy(() => import("@/components/pages/RoadmapPage.jsx"));
 const ChangelogPage = lazy(() => import("@/components/pages/ChangelogPage.jsx"));
+const ChangelogDetailPage = lazy(() => import("@/components/pages/ChangelogDetailPage.jsx"));
 const AdminChangelogsPage = lazy(() => import("@/components/pages/AdminChangelogsPage.jsx"));
 const NotFound = lazy(() => import("@/components/pages/NotFound.jsx"));
 const mainRoutes = [
@@ -34,8 +35,12 @@ const mainRoutes = [
     element: <Suspense fallback={<div>Loading.....</div>}><AdminBoardsPage /></Suspense>
   },
   {
-    path: "changelog",
+path: "changelog",
     element: <Suspense fallback={<div>Loading.....</div>}><ChangelogPage /></Suspense>
+  },
+  {
+    path: "changelog/:version",
+    element: <Suspense fallback={<div>Loading.....</div>}><ChangelogDetailPage /></Suspense>
   },
   {
     path: "admin/changelogs",
